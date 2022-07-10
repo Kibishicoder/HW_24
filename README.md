@@ -23,5 +23,5 @@ Requests can be realized as a json POST-request or as request parameters
 
 _Example 1_: { "file_name": "apache_logs.txt", "cmd1": "filter", "value1": "get", "cmd2": "limit", "value2": 5 }
 
-_Example 2_: http://127.0.0.1:5000/perform_query/?cmd1=filter&value1=GET&cmd2=limit&value2=2
+_Example 2_: http://127.0.0.1:5000/perform_query/?cmd1=filter&value1=GET&cmd2=limit&value2=2&file_name=apache_logs.txt
 

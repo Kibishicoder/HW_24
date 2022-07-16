@@ -1,42 +1,31 @@
 import os
 
+from marshmallow.exceptions import ValidationError
 from flask import Flask, request, abort
 
-import utils
-from config import DATA_DIR, COMMANDS
+from project_data import utils
+from project_data.commands import CommandsSchema, Commands
+from project_data.config import DATA_DIR
 
 app = Flask(__name__)
 
 
 @app.route('/perform_query/', methods=['GET', 'POST'])
 def perform_query():
-
-    file_name = request.args.get('file_name')
-    cmd1 = request.args.get('cmd1') + '_'
-    value1 = request.args.get('value1')
-    cmd2 = request.args.get('cmd2') + '_'
-    value2 = request.args.get('value2')
-
-    # Check upcoming data
-    if (
-        None in (file_name, cmd1, value1, cmd2, value2)
-        or cmd1 not in COMMANDS
-        or cmd2 not in COMMANDS
-    ):
-        return abort(400, 'Wrong params given')
-
-    file_path = os.path.join(DATA_DIR, file_name)
-    if not os.path.exists(file_path):
-        return abort(400, 'Wrong filename given')
-
     try:
-        with open(file_path, 'r') as file:
-            result_1 = getattr(utils, cmd1)(file, value1)
-            result_2 = getattr(utils, cmd2)(result_1, value2)
-    except (ValueError, TypeError) as e:
-        abort(400, e)
+        commands: Commands = CommandsSchema().load(request.args)
+        file_path: str = os.path.join(DATA_DIR, commands.file_name)
 
-    return app.response_class(result_2, content_type="text/plain")
+        if not os.path.exists(file_path):
+            raise FileNotFoundError('Wrong filename given')
+
+        with open(file_path, 'r') as file:
+            cmd1_result = getattr(utils, commands.cmd1)(file, commands.value1)
+            cmd2_result = getattr(utils, commands.cmd2)(cmd1_result, commands.value2)
+            return app.response_class('\n'.join([line.strip() for line in cmd2_result]), content_type="text/plain")
+
+    except (ValueError, FileNotFoundError, TypeError, IndexError, ValidationError) as e:
+        abort(400, e)
 
 
 if __name__ == '__main__':

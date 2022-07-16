@@ -1,3 +1,4 @@
+import re
 from typing import Iterator, List, Iterable, Set, Union
 
 
@@ -34,3 +35,9 @@ def limit_(iterable: Iterator, number: Union[str, int]) -> List:
 def unique_(iterable: Iterator, *args) -> Set:
     """Return only unique lines"""
     return set(iterable)
+
+
+def regex_(iterable: Iterator, expression: str) -> Iterable:
+    """Filter data with regular expression given"""
+    regex = re.compile(rf'{str(expression)}')
+    return filter(lambda line: regex.search(line), iterable)
